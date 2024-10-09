@@ -1,0 +1,90 @@
+{
+  "project_info": {
+    "project_number": "176492539093",
+    "project_id": "chat-app-35ca1",
+    "storage_bucket": "chat-app-35ca1.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:176492539093:android:26a220e733e681879bc65c",
+        "android_client_info": {
+          "package_name": "com.example.chat_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "176492539093-ddo9qhb0v221tkqo0ork2m6cu2pthsm7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAZp9wOBaLEK15rfr0PEoWo8hdKMjWKXc4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "176492539093-ddo9qhb0v221tkqo0ork2m6cu2pthsm7.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "176492539093-dlgs92eqba113k58dln572kj6fctseoa.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.chatApp"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:176492539093:android:22f61336a1f324ae9bc65c",
+        "android_client_info": {
+          "package_name": "com.example.chatapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "176492539093-vjm4v26rh21orvr25hj30c9ikvc27uld.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.chatapp",
+            "certificate_hash": "116a615c096b8e9d7aea25969f63c4acb6c84698"
+          }
+        },
+        {
+          "client_id": "176492539093-ddo9qhb0v221tkqo0ork2m6cu2pthsm7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAZp9wOBaLEK15rfr0PEoWo8hdKMjWKXc4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "176492539093-ddo9qhb0v221tkqo0ork2m6cu2pthsm7.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "176492539093-dlgs92eqba113k58dln572kj6fctseoa.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.chatApp"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

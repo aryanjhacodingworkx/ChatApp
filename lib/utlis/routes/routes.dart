@@ -1,13 +1,19 @@
 import 'package:chat_app/screens/home_screen.dart';
+import 'package:chat_app/screens/login_screen.dart';
 import 'package:chat_app/utlis/routes/route_names.dart';
 import 'package:flutter/material.dart';
 
 class Routes {
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
+
       case RouteNames.homeScreen:
         return MaterialPageRoute(
           builder: (context) => HomeScreen(),
+        );
+      case RouteNames.loginScreen:
+        return MaterialPageRoute(
+          builder: (context) => LoginScreen(),
         );
 
       default:
