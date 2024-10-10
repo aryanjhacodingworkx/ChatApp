@@ -1,5 +1,7 @@
+import 'package:chat_app/models/chat_user_model.dart';
 import 'package:chat_app/screens/home_screen.dart';
 import 'package:chat_app/screens/login_screen.dart';
+import 'package:chat_app/screens/profile_screen.dart';
 import 'package:chat_app/utlis/routes/route_names.dart';
 import 'package:flutter/material.dart';
 

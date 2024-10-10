@@ -1,6 +1,7 @@
 // import 'dart:math';
 import 'dart:developer';
 
+import 'package:chat_app/constants/firebase_const.dart';
 import 'package:chat_app/providers/auth_provider.dart';
 import 'package:chat_app/utlis/helper.dart';
 import 'package:chat_app/utlis/image_locations.dart';
@@ -34,14 +35,22 @@ class _LoginScreenState extends State<LoginScreen> {
               builder: (context, authProvider, child) => ElevatedButton(
                 onPressed: () {
                   Helper.showProgressIndicator(context);
-                  authProvider.signInWithGoogle().then((value) {
+                  authProvider.signInWithGoogle().then((value) async {
                     Navigator.pop(context);
                     if (value != null) {
                       log('user info:- ${value.user}');
-                      log('user AditionalInfo:- ${value.additionalUserInfo}');
 
-                      Navigator.pushReplacementNamed(
-                          context, RouteNames.homeScreen);
+                      //checking if user already exists
+                      if ((await FirebaseConst.userExists())) {
+                        Navigator.pushReplacementNamed(
+                            context, RouteNames.homeScreen);
+                      } else {
+                        //creating the user if not exists
+                        await FirebaseConst.createUser().then((value) {
+                          Navigator.pushReplacementNamed(
+                              context, RouteNames.homeScreen);
+                        });
+                      }
                     }
                   });
                 },

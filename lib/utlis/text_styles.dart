@@ -12,3 +12,18 @@ var loginButtonTextStyle = GoogleFonts.nunitoSans(
   fontWeight: FontWeight.bold,
   fontSize: 16.sp,
 );
+var profileButtonEmailTextStyle = GoogleFonts.nunitoSans(
+  color: Colors.black,
+  fontWeight: FontWeight.bold,
+  fontSize: 16.sp,
+);
+var profileButtonUpdateTextStyle = GoogleFonts.nunitoSans(
+  color: Colors.white,
+  fontWeight: FontWeight.bold,
+  fontSize: 14.sp,
+);
+var profileScreenBottomSheetTextStyle = GoogleFonts.nunitoSans(
+  color: Colors.black45,
+  fontWeight: FontWeight.bold,
+  fontSize: 14.sp,
+);

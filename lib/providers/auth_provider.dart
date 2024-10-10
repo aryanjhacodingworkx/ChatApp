@@ -22,7 +22,7 @@ class AuthProvider with ChangeNotifier {
     return await FirebaseConst.auth.signInWithCredential(credential);
   }
 
-  signOut() async {
+  Future<void>signOut() async {
     await FirebaseConst.auth.signOut();
     await GoogleSignIn().signOut();
   }

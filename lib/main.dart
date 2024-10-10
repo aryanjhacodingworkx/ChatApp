@@ -1,4 +1,5 @@
 import 'package:chat_app/providers/auth_provider.dart';
+import 'package:chat_app/providers/photo_provider.dart';
 import 'package:chat_app/utlis/routes/route_names.dart';
 import 'package:chat_app/utlis/routes/routes.dart';
 import 'package:chat_app/utlis/text_styles.dart';
@@ -15,10 +16,11 @@ void main() {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (context) => AuthProvider()),
+        ChangeNotifierProvider(create: (context) => ProfileImageProvider()),
       ],
       child: MyApp(),
     ),
-  );  
+  );
 }
 
 _initializeFirebase() async {
