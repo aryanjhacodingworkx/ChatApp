@@ -1,12 +1,12 @@
 import 'dart:convert';
 import 'dart:developer';
+import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:chat_app/constants/firebase_const.dart';
 import 'package:chat_app/main.dart';
 import 'package:chat_app/models/chat_user_model.dart';
 import 'package:chat_app/providers/auth_provider.dart';
-import 'package:chat_app/providers/photo_provider.dart';
 import 'package:chat_app/utlis/routes/route_names.dart';
 import 'package:chat_app/utlis/text_styles.dart';
 import 'package:chat_app/widgets/chat_user_card.dart';
@@ -14,6 +14,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:touch_ripple_effect/touch_ripple_effect.dart';
 
@@ -27,6 +28,7 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   final _formKey = GlobalKey<FormState>();
+  String? _image;
 
   _onSubmit() {
     return _formKey.currentState!.validate();
@@ -67,31 +69,43 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 SizedBox(
                   height: 40.h,
                 ),
-                Stack(children: [
-                  Center(
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(200.r),
-                      child: CachedNetworkImage(
-                        height: 150.h,
-                        width: 170.w,
-                        fit: BoxFit.fill,
-                        imageUrl: widget.user.image,
-                        placeholder: (context, url) =>
-                            CircularProgressIndicator(),
-                        errorWidget: (context, url, error) => CircleAvatar(
-                          backgroundColor: Colors.lightBlue,
-                          child: Icon(CupertinoIcons.person),
-                        ),
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    bottom: 0,
-                    right: 75,
-                    child: MaterialButton(
-                      elevation: 1,
-                      onPressed: () {
-                        showModalBottomSheet(
+                Stack(
+                  children: [
+                    Center(
+                        //local image
+                        child: _image == null
+                            ? ClipRRect(
+                                borderRadius: BorderRadius.circular(200.r),
+                                child: CachedNetworkImage(
+                                  height: 150.h,
+                                  width: 170.w,
+                                  fit: BoxFit.fill,
+                                  imageUrl: widget.user.image,
+                                  placeholder: (context, url) =>
+                                      CircularProgressIndicator(),
+                                  errorWidget: (context, url, error) =>
+                                      CircleAvatar(
+                                    backgroundColor: Colors.lightBlue,
+                                    child: Icon(CupertinoIcons.person),
+                                  ),
+                                ),
+                              )
+                            : ClipRRect(
+                                borderRadius: BorderRadius.circular(200.r),
+                                child: Image.file(
+                                  File(_image!),
+                                  height: 150.h,
+                                  width: 170.w,
+                                  fit: BoxFit.fill,
+                                ),
+                              )),
+                    Positioned(
+                      bottom: 0,
+                      right: 75,
+                      child: MaterialButton(
+                        elevation: 1,
+                        onPressed: () {
+                          showModalBottomSheet(
                             backgroundColor: Colors.white,
                             context: context,
                             builder: (context) {
@@ -120,42 +134,66 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       mainAxisAlignment:
                                           MainAxisAlignment.spaceEvenly,
                                       children: [
-                                        Consumer<ProfileImageProvider>(
-                                          builder: (context, value, child) =>
-                                              TouchRippleEffect(
-                                            rippleColor: Colors.white,
-                                            onTap: () {
-                                              value.getImageFromCamera();
-                                            },
-                                            child: myCameraIcon(),
-                                          ),
+                                        TouchRippleEffect(
+                                          rippleColor: Colors.white,
+                                          onTap: () async {
+                                            final ImagePicker picker =
+                                                ImagePicker();
+                                            final XFile? image =
+                                                await picker.pickImage(
+                                              source: ImageSource.camera,
+                                              imageQuality: 50,
+                                            );
+                                            if (image != null) {
+                                              setState(() {
+                                                _image = image.path;
+                                              });
+                                              FirebaseConst
+                                                  .updateProfilePicture(
+                                                      File(_image!));
+                                            }
+                                          },
+                                          child: myCameraIcon(),
                                         ),
-                                        Consumer<ProfileImageProvider>(
-                                          builder: (context, value, child) =>
-                                              TouchRippleEffect(
-                                            rippleColor: Colors.white,
-                                            onTap: () {
-                                              value.getImageFromGallery();
-                                            },
-                                            child: myGalleryIcon(),
-                                          ),
+                                        TouchRippleEffect(
+                                          rippleColor: Colors.white,
+                                          onTap: () async {
+                                            final ImagePicker picker =
+                                                ImagePicker();
+                                            final XFile? image =
+                                                await picker.pickImage(
+                                              source: ImageSource.gallery,
+                                              imageQuality: 50,
+                                            );
+                                            if (image != null) {
+                                              setState(() {
+                                                _image = image.path;
+                                              });
+                                              FirebaseConst
+                                                  .updateProfilePicture(
+                                                      File(_image!));
+                                            }
+                                          },
+                                          child: myGalleryIcon(),
                                         )
                                       ],
                                     )
                                   ],
                                 ),
                               );
-                            });
-                      },
-                      shape: CircleBorder(),
-                      color: Colors.white,
-                      child: Icon(
-                        Icons.edit,
-                        color: Colors.blue,
+                            },
+                          );
+                        },
+                        shape: CircleBorder(),
+                        color: Colors.white,
+                        child: Icon(
+                          Icons.edit,
+                          color: Colors.blue,
+                        ),
                       ),
                     ),
-                  ),
-                ]),
+                  ],
+                ),
                 SizedBox(height: 20.h),
                 Text(
                   widget.user.email,
@@ -171,17 +209,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       value == null || value.isEmpty ? "Required Field" : null,
                   onTapOutside: (val) => FocusScope.of(context).unfocus(),
                   decoration: InputDecoration(
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12.r),
-                      ),
-                      prefixIcon: Icon(
-                        CupertinoIcons.person,
-                        color: Colors.blue,
-                      ),
-                      labelText: "Name",
-                      hintText: "eg. John Doe",
-                      hintStyle: TextStyle(
-                          color: const Color.fromARGB(255, 170, 170, 170))),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12.r),
+                    ),
+                    prefixIcon: Icon(
+                      CupertinoIcons.person,
+                      color: Colors.blue,
+                    ),
+                    labelText: "Name",
+                    hintText: "eg. John Doe",
+                    hintStyle: TextStyle(
+                        color: const Color.fromARGB(255, 170, 170, 170)),
+                  ),
                 ),
                 SizedBox(height: 20.h),
                 TextFormField(
@@ -193,17 +232,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       value == null || value.isEmpty ? "Required Field" : null,
                   onTapOutside: (val) => FocusScope.of(context).unfocus(),
                   decoration: InputDecoration(
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12.r),
-                      ),
-                      prefixIcon: Icon(
-                        CupertinoIcons.info,
-                        color: Colors.blue,
-                      ),
-                      labelText: "About",
-                      hintText: "eg. Feeling happy....",
-                      hintStyle: TextStyle(
-                          color: const Color.fromARGB(255, 170, 170, 170))),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12.r),
+                    ),
+                    prefixIcon: Icon(
+                      CupertinoIcons.info,
+                      color: Colors.blue,
+                    ),
+                    labelText: "About",
+                    hintText: "eg. Feeling happy....",
+                    hintStyle: TextStyle(
+                        color: const Color.fromARGB(255, 170, 170, 170)),
+                  ),
                 ),
                 SizedBox(height: 40.h),
                 TouchRippleEffect(
@@ -277,7 +317,7 @@ Column myCameraIcon() {
       Text(
         "Camera",
         style: profileScreenBottomSheetTextStyle,
-      )
+      ),
     ],
   );
 }

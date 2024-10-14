@@ -63,6 +63,10 @@ dependencies:
   flutter_image_compress: ^2.3.0
   #to get the path of the image or set
   path_provider: ^2.1.4
+  #to access the storage that is in firebase
+  firebase_storage: ^12.3.3
+  #for showing emojis in the chat card
+  emoji_picker_flutter: ^3.1.0
 
 
 dev_dependencies:
