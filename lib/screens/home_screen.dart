@@ -38,12 +38,14 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
+        backgroundColor: Colors.white,
         leading: Icon(Icons.home),
         title: _isSearchingOn
             ? TextField(
                 autofocus: true,
-                onTapOutside: (val)=>FocusScope.of(context).unfocus(),
+                onTapOutside: (val) => FocusScope.of(context).unfocus(),
                 decoration: InputDecoration(
                   border: InputBorder.none,
                   hintText: "Name/Email...",

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
+import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:chat_app/constants/firebase_const.dart';
@@ -11,6 +12,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:image_picker/image_picker.dart';
 
 class ChatScreen extends StatefulWidget {
   final ChatUser user;
@@ -25,10 +27,14 @@ class _ChatScreenState extends State<ChatScreen> {
 
   final _textController = TextEditingController();
 
+  final _scrollController = ScrollController();
+  bool _isUploading = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.white,
         automaticallyImplyLeading: false,
         flexibleSpace: _appBar(),
       ),
@@ -55,12 +61,19 @@ class _ChatScreenState extends State<ChatScreen> {
 
                 if (_list.isNotEmpty) {
                   return ListView.builder(
-                    itemCount: _list.length,
+                    reverse: true,
+                    // controller: _scrollController,
+                    itemCount: _list.length + 1,
                     padding: EdgeInsets.only(
                       top: 15.h,
                     ),
                     physics: BouncingScrollPhysics(),
                     itemBuilder: (context, index) {
+                      if (index == _list.length) {
+                        return SizedBox(
+                          height: 10.h,
+                        );
+                      }
                       return MessageCard(
                         message: _list[index],
                       );
@@ -79,6 +92,19 @@ class _ChatScreenState extends State<ChatScreen> {
               },
             ),
           ),
+          if (_isUploading)
+            Align(
+              alignment: Alignment.centerRight,
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                  vertical: 12.h,
+                  horizontal: 20.w,
+                ),
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                ),
+              ),
+            ),
           _chatInput(),
         ],
       ),
@@ -92,59 +118,62 @@ class _ChatScreenState extends State<ChatScreen> {
         padding: EdgeInsets.only(
           top: 12.h,
         ),
-        child: Row(
-          children: [
-            Padding(
-              padding: EdgeInsets.only(
-                top: 3.h,
-              ),
-              child: IconButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                icon: Icon(Icons.arrow_back),
-                color: Colors.black54,
-              ),
-            ),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(200.r),
-              child: CachedNetworkImage(
-                height: 32.h,
-                width: 36.w,
-                fit: BoxFit.fill,
-                imageUrl: widget.user.image,
-                placeholder: (context, url) => CircularProgressIndicator(),
-                errorWidget: (context, url, error) => CircleAvatar(
-                  backgroundColor: Colors.lightBlue,
-                  child: Icon(CupertinoIcons.person),
+        child: Container(
+          color: Colors.white,
+          child: Row(
+            children: [
+              Padding(
+                padding: EdgeInsets.only(
+                  top: 3.h,
+                ),
+                child: IconButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  icon: Icon(Icons.arrow_back),
+                  color: Colors.black54,
                 ),
               ),
-            ),
-            SizedBox(
-              width: 10.w,
-            ),
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  widget.user.name,
-                  style: TextStyle(
-                    fontSize: 16.sp,
-                    color: Colors.black54,
-                    fontWeight: FontWeight.w500,
+              ClipRRect(
+                borderRadius: BorderRadius.circular(200.r),
+                child: CachedNetworkImage(
+                  height: 32.h,
+                  width: 36.w,
+                  fit: BoxFit.fill,
+                  imageUrl: widget.user.image,
+                  placeholder: (context, url) => CircularProgressIndicator(),
+                  errorWidget: (context, url, error) => CircleAvatar(
+                    backgroundColor: Colors.lightBlue,
+                    child: Icon(CupertinoIcons.person),
                   ),
                 ),
-                Text(
-                  "Last seen not available",
-                  style: TextStyle(
-                    fontSize: 13.sp,
-                    color: Colors.black54,
+              ),
+              SizedBox(
+                width: 10.w,
+              ),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.user.name,
+                    style: TextStyle(
+                      fontSize: 16.sp,
+                      color: Colors.black54,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
-                ),
-              ],
-            )
-          ],
+                  Text(
+                    "Last seen not available",
+                    style: TextStyle(
+                      fontSize: 13.sp,
+                      color: Colors.black54,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -160,11 +189,15 @@ class _ChatScreenState extends State<ChatScreen> {
         children: [
           Expanded(
             child: Card(
+              color: Colors.white,
               child: Row(
                 children: [
-                  IconButton(
-                    onPressed: () {},
-                    icon: Icon(Icons.emoji_emotions_outlined),
+                  // IconButton(
+                  //   onPressed: () {},
+                  //   icon: Icon(Icons.emoji_emotions_outlined),
+                  // ),
+                  SizedBox(
+                    width: 20.w,
                   ),
                   Expanded(
                     child: TextField(
@@ -180,11 +213,44 @@ class _ChatScreenState extends State<ChatScreen> {
                     ),
                   ),
                   IconButton(
-                    onPressed: () {},
+                    onPressed: () async {
+                      final ImagePicker picker = ImagePicker();
+                      final List<XFile>? images = await picker.pickMultiImage(
+                        imageQuality: 50,
+                      );
+                      if (images != null) {
+                        for (var i in images) {
+                          setState(() {
+                            _isUploading = true;
+                          });
+                          await FirebaseConst.sendChatImages(
+                              widget.user, File(i.path));
+                          setState(() {
+                            _isUploading = false;
+                          });
+                        }
+                      }
+                    },
                     icon: Icon(Icons.photo_camera_back_outlined),
                   ),
                   IconButton(
-                    onPressed: () {},
+                    onPressed: () async {
+                      final ImagePicker picker = ImagePicker();
+                      final XFile? image = await picker.pickImage(
+                        source: ImageSource.camera,
+                        imageQuality: 50,
+                      );
+                      if (image != null) {
+                        setState(() {
+                          _isUploading = true;
+                        });
+                        await FirebaseConst.sendChatImages(
+                            widget.user, File(image.path));
+                        setState(() {
+                          _isUploading = false;
+                        });
+                      }
+                    },
                     icon: Icon(Icons.camera_alt_outlined),
                   ),
                 ],
@@ -194,7 +260,8 @@ class _ChatScreenState extends State<ChatScreen> {
           MaterialButton(
             onPressed: () {
               if (_textController.text.isNotEmpty) {
-                FirebaseConst.sendMessage(widget.user, _textController.text);
+                FirebaseConst.sendMessage(
+                    widget.user, _textController.text, Type.text);
                 _textController.text = '';
               }
             },

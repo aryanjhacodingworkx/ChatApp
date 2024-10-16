@@ -10,22 +10,22 @@ import 'package:flutter/material.dart';
 
 class FirebaseConst {
   // for authentications
-  static FirebaseAuth auth = FirebaseAuth.instance;
+  static FirebaseAuth authInstance = FirebaseAuth.instance;
 
   // for cloud database features
-  static FirebaseFirestore firestore = FirebaseFirestore.instance;
+  static FirebaseFirestore firestoreInstance = FirebaseFirestore.instance;
 
   // for firebase storage features
-  static FirebaseStorage storage = FirebaseStorage.instance;
+  static FirebaseStorage storageInstance = FirebaseStorage.instance;
 
   // to return current user
-  static User get user => auth.currentUser!;
+  static User get user => authInstance.currentUser!;
 
   // for checking if user already exists or not?
   static Future<bool> userExists() async {
-    return (await firestore
+    return (await firestoreInstance
             .collection('users')
-            .doc(auth.currentUser!.uid)
+            .doc(authInstance.currentUser!.uid)
             .get())
         .exists;
   }
@@ -46,7 +46,7 @@ class FirebaseConst {
       email: user.email.toString(),
     );
 
-    return await firestore
+    return await firestoreInstance
         .collection('users')
         .doc(user.uid)
         .set(newUserDetails.toJson());
@@ -54,7 +54,7 @@ class FirebaseConst {
 
   // for getting user info from firestore db
   static Stream<QuerySnapshot<Map<String, dynamic>>> getAllUsers() {
-    return firestore
+    return firestoreInstance
         .collection('users')
         .where('id', isNotEqualTo: user.uid)
         .snapshots();
@@ -65,9 +65,9 @@ class FirebaseConst {
 
   // to get the info of current user.
   static Future<void> getCurrentUserInfo() async {
-    await firestore
+    await firestoreInstance
         .collection('users')
-        .doc(auth.currentUser!.uid)
+        .doc(authInstance.currentUser!.uid)
         .get()
         .then((value) async {
       if (value.exists) {
@@ -78,23 +78,23 @@ class FirebaseConst {
     });
   }
 
+  // for updating the current user info
   static Future<void> updateUserInfo() async {
-    await firestore.collection('users').doc(user.uid).update({
+    await firestoreInstance.collection('users').doc(user.uid).update({
       'name': currentUser.name,
       'about': currentUser.about,
     });
   }
 
+  // for updating the dp of the current user
   static Future<void> updateProfilePicture(File file) async {
     try {
       // Getting image file extension
       final ext = file.path.split('.').last;
-      log("ext $ext");
-      log("reached dest 1");
 
       // Reference to Firebase Storage
-      final ref = storage.ref().child('profile_pictures/${user.uid}.$ext');
-      log("reached dest 2");
+      final ref =
+          storageInstance.ref().child('profile_pictures/${user.uid}.$ext');
 
       // Uploading image
       await ref
@@ -102,11 +102,10 @@ class FirebaseConst {
           .then((p0) {
         log('Done transferring data: ${p0.bytesTransferred / 1000} kb');
       });
-      log("reached dest 3");
 
       // Updating image to Firestore DB
       currentUser.image = await ref.getDownloadURL();
-      await firestore.collection('users').doc(user.uid).update({
+      await firestoreInstance.collection('users').doc(user.uid).update({
         'image': currentUser.image,
       });
       log("reached dest 4");
@@ -126,14 +125,16 @@ class FirebaseConst {
   // for getting user info from firestore db
   static Stream<QuerySnapshot<Map<String, dynamic>>> getAllMessages(
       ChatUser chatUser) {
-    return firestore
+    return firestoreInstance
         .collection('chats/${getConversationId(chatUser.id)}/messages/')
         // .where('id', isNotEqualTo: user.uid)
+        .orderBy('sent', descending: true)
         .snapshots();
   }
 
   // for sending messages
-  static Future<void> sendMessage(ChatUser chatUser, String msg) async {
+  static Future<void> sendMessage(
+      ChatUser chatUser, String msg, Type type) async {
     // msg sending time(also used as id)
     final time = DateTime.now().millisecondsSinceEpoch.toString();
 
@@ -142,12 +143,12 @@ class FirebaseConst {
       toId: chatUser.id,
       msg: msg,
       read: '',
-      type: Type.text,
+      type: type,
       fromId: user.uid,
       sent: time,
     );
 
-    final ref = firestore
+    final ref = firestoreInstance
         .collection('chats/${getConversationId(chatUser.id)}/messages/');
 
     await ref.doc(time).set(message.toJson());
@@ -155,7 +156,7 @@ class FirebaseConst {
 
   // update read status of the msg
   static Future<void> updateReadStatus(Message message) async {
-    firestore
+    firestoreInstance
         .collection('chats/${getConversationId(message.fromId)}/messages/')
         .doc(message.sent)
         .update({
@@ -166,10 +167,39 @@ class FirebaseConst {
   //to get only last msg of a specific chat
   static Stream<QuerySnapshot<Map<String, dynamic>>> getLastMessage(
       ChatUser chatUser) {
-    return firestore
+    return firestoreInstance
         .collection('chats/${getConversationId(chatUser.id)}/messages/')
         .orderBy('sent', descending: true)
         .limit(1)
         .snapshots();
+  }
+
+  static Future<void> sendChatImages(ChatUser chatUser, File file) async {
+    try {
+      // Getting image file extension
+      final ext = file.path.split('.').last;
+
+      // Reference to Firebase Storage
+      final ref = storageInstance.ref().child(
+          'images/${getConversationId(chatUser.id)}/${DateTime.now().millisecondsSinceEpoch}.$ext');
+
+      // Uploading image
+      await ref
+          .putFile(file, SettableMetadata(contentType: 'image/$ext'))
+          .then((p0) {
+        log('Done transferring data: ${p0.bytesTransferred / 1000} kb');
+      });
+
+      // Updating image to Firestore DB
+      final imageUrl = currentUser.image = await ref.getDownloadURL();
+      await sendMessage(
+        chatUser,
+        imageUrl,
+        Type.img,
+      );
+    } catch (e) {
+      // Logging the error
+      log("Error occurred: $e");
+    }
   }
 }

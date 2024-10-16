@@ -67,6 +67,8 @@ dependencies:
   firebase_storage: ^12.3.3
   #for showing emojis in the chat card
   emoji_picker_flutter: ^3.1.0
+  #for animation in app
+  flutter_animate: ^4.5.0
 
 
 dev_dependencies:
